@@ -1,0 +1,6 @@
+@CareWebServiceEndpoint_HostAddress = http://localhost:5150
+
+GET {{CareWebServiceEndpoint_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

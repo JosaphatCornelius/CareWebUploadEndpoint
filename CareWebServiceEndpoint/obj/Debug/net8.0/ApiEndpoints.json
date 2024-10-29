@@ -1,0 +1,28 @@
+[
+  {
+    "ContainingType": "CareWebServiceEndpoint.Controllers.Upload_UP00000001",
+    "Method": "Upload_Data",
+    "RelativePath": "Upload-Data",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "UP01",
+        "Type": "CareWebServiceEndpoint.Models.UP00000001Model",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Net.Http.HttpResponseMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  }
+]

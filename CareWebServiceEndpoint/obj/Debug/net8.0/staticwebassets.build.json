@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "nAGHtPu3Mo5BdvdsKcUAiHdM5DlPhUhUZrUm2TeKOjk=",
+  "Source": "CareWebServiceEndpoint",
+  "BasePath": "_content/CareWebServiceEndpoint",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
