@@ -30,3 +30,5 @@ C:\Users\josaphat.cornelius\Documents\CWSEndpoint\CareWebServiceEndpoint\obj\Deb
 C:\Users\josaphat.cornelius\Documents\CWSEndpoint\CareWebServiceEndpoint\obj\Debug\net8.0\CareWebServiceEndpoint.pdb
 C:\Users\josaphat.cornelius\Documents\CWSEndpoint\CareWebServiceEndpoint\obj\Debug\net8.0\CareWebServiceEndpoint.genruntimeconfig.cache
 C:\Users\josaphat.cornelius\Documents\CWSEndpoint\CareWebServiceEndpoint\obj\Debug\net8.0\ref\CareWebServiceEndpoint.dll
+C:\Users\josaphat.cornelius\Documents\CWSEndpoint\CareWebServiceEndpoint\obj\Debug\net8.0\CareWebServiceEndpoint.sourcelink.json
+C:\Users\josaphat.cornelius\Documents\CWSEndpoint\CareWebServiceEndpoint\bin\Debug\net8.0\Newtonsoft.Json.dll

@@ -6,13 +6,7 @@
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
-    "Parameters": [
-      {
-        "Name": "UP01",
-        "Type": "CareWebServiceEndpoint.Models.UP00000001Model",
-        "IsRequired": true
-      }
-    ],
+    "Parameters": [],
     "ReturnTypes": [
       {
         "Type": "System.Net.Http.HttpResponseMessage",
