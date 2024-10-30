@@ -1,4 +1,7 @@
 
+using CareWebServiceEndpoint.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace CareWebServiceEndpoint
 {
     public class Program
@@ -13,6 +16,10 @@ namespace CareWebServiceEndpoint
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddDbContext<SEAWEBContext>(
+                options => options.UseSqlServer(builder.Configuration.GetConnectionString("SEAWEBServiceCon"))
+            );
 
             var app = builder.Build();
 

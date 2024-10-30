@@ -1,5 +1,6 @@
 ﻿using CareWebServiceEndpoint.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Net;
 using System.Text.Json;
@@ -12,8 +13,15 @@ namespace CareWebServiceEndpoint.Controllers
     [ApiController]
     public class Upload_UP00000001 : Controller
     {
+        private readonly SEAWEBContext _context;
+
+        public Upload_UP00000001(SEAWEBContext context)
+        {
+            _context = context;
+        }
+
         [HttpPost("/Upload-Data")]
-        public async Task<HttpResponseMessage> Upload_Data()
+        public async Task<string> Upload_Data()
         {
             var handler = new HttpClientHandler();
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
@@ -30,7 +38,13 @@ namespace CareWebServiceEndpoint.Controllers
 
             var response = await client.SendAsync(request);
 
-            return response;
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        [HttpGet("/Upload-Check")]
+        public async Task<List<SysBatchUpModel>> Upload_Check([FromQuery] string? batchNo)
+        {
+            return await _context.CatalogSysBatchUP.AsNoTracking().Where(x => x.BatchNo == batchNo).ToListAsync();
         }
     }
 }
