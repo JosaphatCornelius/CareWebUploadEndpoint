@@ -1,6 +1,6 @@
 [
   {
-    "ContainingType": "CareWebServiceEndpoint.Controllers.Upload_UP00000001",
+    "ContainingType": "CareWebServiceEndpoint.Controllers.Upload_Excel",
     "Method": "UploadCheck",
     "RelativePath": "Upload-Check",
     "HttpMethod": "GET",
@@ -26,7 +26,7 @@
     ]
   },
   {
-    "ContainingType": "CareWebServiceEndpoint.Controllers.Upload_UP00000001",
+    "ContainingType": "CareWebServiceEndpoint.Controllers.Upload_Excel",
     "Method": "UploadData",
     "RelativePath": "Upload-UP00000001",
     "HttpMethod": "POST",
