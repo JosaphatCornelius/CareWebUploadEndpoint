@@ -21,6 +21,10 @@ namespace CareWebServiceEndpoint
                 options => options.UseSqlServer(builder.Configuration.GetConnectionString("SEAWEBServiceCon"))
             );
 
+            builder.Services.AddDbContext<ARTALEARNContext>(
+                options => options.UseSqlServer(builder.Configuration.GetConnectionString("ARTALEARNServiceCon"))
+            );
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

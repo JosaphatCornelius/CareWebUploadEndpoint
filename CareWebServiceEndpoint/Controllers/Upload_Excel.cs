@@ -1,7 +1,9 @@
 ﻿using CareWebServiceEndpoint.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Data;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -11,41 +13,76 @@ namespace CareWebServiceEndpoint.Controllers
     [ApiController]
     public class Upload_Excel : Controller
     {
-        private readonly SEAWEBContext _context;
+        private readonly SEAWEBContext _seaWebContext;
+        private readonly ARTALEARNContext _artaLearnContext;
 
-        public Upload_Excel(SEAWEBContext context)
+        public Upload_Excel(SEAWEBContext seaWebContext, ARTALEARNContext artaLearnContext)
         {
-            _context = context;
+            _seaWebContext = seaWebContext;
+            _artaLearnContext = artaLearnContext;
         }
 
         [HttpPost("/Upload-UP00000001")]
-        public async Task<string> UploadData([FromBody] List<UP00000001Model> UP01Data)
+        public async Task<string> UploadData([FromQuery] string uploadOpt, [FromBody] List<UP00000001Model> UP01Data)
         {
-            var handler = new HttpClientHandler();
-            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            handler.ServerCertificateCustomValidationCallback =
-                (httpRequestMessage, cert, cetChain, policyErrors) =>
-                {
-                    return true;
-                };
+            try
+            {
+                var handler = new HttpClientHandler();
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                handler.ServerCertificateCustomValidationCallback =
+                    (httpRequestMessage, cert, cetChain, policyErrors) =>
+                    {
+                        return true;
+                    };
 
-            var client = new HttpClient(handler);
+                var client = new HttpClient(handler);
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
-            request.Content = new StringContent(ConvertJsonToXML(UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
+                request.Content = new StringContent(ConvertJsonToXML(uploadOpt.Trim().ToUpper(), UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
 
-            var response = await client.SendAsync(request);
+                var response = await client.SendAsync(request);
 
-            return await response.Content.ReadAsStringAsync();
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         [HttpGet("/Upload-Check")]
-        public async Task<List<SysBatchUpModel>> UploadCheck(string? batchNo)
+        public async Task<List<UPDataModel>> UploadCheck(string? batchNo)
         {
-            return await _context.CatalogSysBatchUP.AsNoTracking().Where(x => x.BatchNo == batchNo).ToListAsync();
+            try
+            {
+                List<UPDataModel> upData = new();
+
+                var uploadedData = await _seaWebContext.CatalogSysBatchOriginalUP.AsNoTracking().Where(x => x.BatchNo == batchNo.Trim()).ToListAsync();
+
+                foreach (var item in uploadedData)
+                {
+                    upData.Add(new UPDataModel
+                    {
+                        BatchNo = item.BatchNo,
+                        ErrMsg = item.ErrMsg,
+                        Status = item.Status,
+                        RefNO = item.RefNO
+                    });
+                }
+
+                await _artaLearnContext.CatalogUPData.AddRangeAsync(upData);
+
+                await _artaLearnContext.SaveChangesAsync();
+
+                return await _artaLearnContext.CatalogUPData.AsNoTracking().Where(x => x.BatchNo == batchNo.Trim()).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-        protected XElement ConvertJsonToXML(List<UP00000001Model> UP01Data)
+        protected XElement ConvertJsonToXML(string uploadOpt, List<UP00000001Model> UP01Data)
         {
             string json = JsonConvert.SerializeObject(UP01Data);
 
@@ -72,11 +109,11 @@ namespace CareWebServiceEndpoint.Controllers
                     new XElement(tem + "inparam",
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string"),
-                            "UP00000001"
+                            uploadOpt
                         ),
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string"),
-                            "UP"
+                            uploadOpt.Substring(0, 2)
                         ),
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string")
