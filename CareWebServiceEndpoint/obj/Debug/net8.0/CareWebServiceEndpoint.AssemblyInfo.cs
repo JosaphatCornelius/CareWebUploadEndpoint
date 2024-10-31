@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CareWebServiceEndpoint")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed4749070cefd4eac73bf18061d5c226775e2e67")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ce317b5b07a05abf3b1b48222beb9574e1553d8")]
 [assembly: System.Reflection.AssemblyProductAttribute("CareWebServiceEndpoint")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CareWebServiceEndpoint")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,32 +1,6 @@
 [
   {
     "ContainingType": "CareWebServiceEndpoint.Controllers.Upload_UP00000001",
-    "Method": "Cek_Status",
-    "RelativePath": "Cek-Status",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "batchNo",
-        "Type": "System.String",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Collections.Generic.List\u00601[[CareWebServiceEndpoint.Models.SysBatchUpModel, CareWebServiceEndpoint, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "CareWebServiceEndpoint.Controllers.Upload_UP00000001",
     "Method": "Upload_Data",
     "RelativePath": "Upload-Data",
     "HttpMethod": "POST",

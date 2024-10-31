@@ -10,5 +10,6 @@ namespace CareWebServiceEndpoint.Models
         public string? BatchNo { get; set; }
         public string? ErrMsg { get; set; }
         public string? Status { get; set; }
+        public string? RefNO { get; set; }
     }
 }
