@@ -3,12 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CareWebServiceEndpoint.Models
 {
-    [Table("SysBatchUp")]
-    public class SysBatchUpModel
+    [Table("SysBatchOriginalUp")]
+    public class SysBatchOriginalUpModel
     {
         [Key]
         public string? BatchNo { get; set; }
         public string? ErrMsg { get; set; }
         public string? Status { get; set; }
+        public string? RefNO { get; set; }
     }
 }
