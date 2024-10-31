@@ -1,5 +1,6 @@
 ﻿using CareWebServiceEndpoint.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
@@ -20,8 +21,8 @@ namespace CareWebServiceEndpoint.Controllers
             _context = context;
         }
 
-        [HttpPost("/Upload-Data")]
-        public async Task<string> Upload_Data([FromBody] List<UP00000001Model> UP01Data)
+        [HttpPost("/Upload-UP00000001")]
+        public async Task<string> UploadData([FromBody] List<UP00000001Model> UP01Data)
         {
             var handler = new HttpClientHandler();
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
@@ -34,15 +35,20 @@ namespace CareWebServiceEndpoint.Controllers
             var client = new HttpClient(handler);
 
             var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
-            request.Content = new StringContent(Upload_Check(UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+            request.Content = new StringContent(ConvertJsonToXML(UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
 
             var response = await client.SendAsync(request);
 
             return await response.Content.ReadAsStringAsync();
         }
 
-        //[HttpGet("/Upload-Check")]
-        protected XElement Upload_Check(List<UP00000001Model> UP01Data)
+        [HttpGet("/Upload-Check")]
+        public async Task<List<SysBatchUpModel>> UploadCheck(string? batchNo)
+        {
+            return await _context.CatalogSysBatchUP.AsNoTracking().Where(x => x.BatchNo == batchNo).ToListAsync();
+        }
+
+        protected XElement ConvertJsonToXML(List<UP00000001Model> UP01Data)
         {
             string json = JsonConvert.SerializeObject(UP01Data);
 
@@ -144,8 +150,6 @@ namespace CareWebServiceEndpoint.Controllers
             return envelope;
 
             //Console.WriteLine(node);
-
-            //return await _context.CatalogSysBatchUP.AsNoTracking().Where(x => x.BatchNo == batchNo).ToListAsync();
 
             //for (int i = 0; i < 100; i++)
             //{
