@@ -35,6 +35,7 @@ namespace CareWebServiceEndpoint.Controllers
                     };
 
                 var client = new HttpClient(handler);
+                client.Timeout = TimeSpan.FromSeconds(150);
 
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
                 request.Content = new StringContent(ConvertJsonToXML("UP00000001", UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
@@ -63,6 +64,7 @@ namespace CareWebServiceEndpoint.Controllers
                     };
 
                 var client = new HttpClient(handler);
+                client.Timeout = TimeSpan.FromSeconds(150);
 
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
                 request.Content = new StringContent(ConvertJsonToXML("BE00000005", BE05Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
