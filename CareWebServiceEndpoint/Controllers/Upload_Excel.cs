@@ -1,6 +1,5 @@
 ﻿using CareWebServiceEndpoint.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Data;
@@ -23,7 +22,7 @@ namespace CareWebServiceEndpoint.Controllers
         }
 
         [HttpPost("/Upload-UP00000001")]
-        public async Task<string> UploadData([FromQuery] string uploadOpt, [FromBody] List<UP00000001Model> UP01Data)
+        public async Task<string> UploadUP01Data([FromBody] List<UP00000001Model> UP01Data)
         {
             try
             {
@@ -38,7 +37,35 @@ namespace CareWebServiceEndpoint.Controllers
                 var client = new HttpClient(handler);
 
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
-                request.Content = new StringContent(ConvertJsonToXML(uploadOpt.Trim().ToUpper(), UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+                request.Content = new StringContent(ConvertJsonToXML("UP00000001", UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+
+                var response = await client.SendAsync(request);
+
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost("/Upload-BE00000005")]
+        public async Task<string> UploadBE05Data([FromBody] List<BE00000005Model> BE05Data)
+        {
+            try
+            {
+                var handler = new HttpClientHandler();
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                handler.ServerCertificateCustomValidationCallback =
+                    (httpRequestMessage, cert, cetChain, policyErrors) =>
+                    {
+                        return true;
+                    };
+
+                var client = new HttpClient(handler);
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
+                request.Content = new StringContent(ConvertJsonToXML("BE00000005", BE05Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
 
                 var response = await client.SendAsync(request);
 
@@ -82,9 +109,9 @@ namespace CareWebServiceEndpoint.Controllers
             }
         }
 
-        protected XElement ConvertJsonToXML(string uploadOpt, List<UP00000001Model> UP01Data)
+        protected XElement ConvertJsonToXML<T>(string uploadOption, List<T> UploadedData)
         {
-            string json = JsonConvert.SerializeObject(UP01Data);
+            string json = JsonConvert.SerializeObject(UploadedData);
 
             //Console.WriteLine(json);
 
@@ -109,11 +136,11 @@ namespace CareWebServiceEndpoint.Controllers
                     new XElement(tem + "inparam",
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string"),
-                            uploadOpt
+                            uploadOption
                         ),
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string"),
-                            uploadOpt.Substring(0, 2)
+                            uploadOption.Substring(0, 2)
                         ),
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string")
@@ -141,7 +168,7 @@ namespace CareWebServiceEndpoint.Controllers
                                             new XAttribute("maxOccurs", "unbounded"),
                                             new XElement(xs + "complexType",
                                                 new XElement(xs + "sequence",
-                                                    UP01Data.SelectMany(UP01Obj => UP01Obj.GetType().GetProperties()
+                                                    UploadedData.SelectMany(data => data.GetType().GetProperties()
                                                         .Where(type => type.PropertyType == typeof(string))
                                                         .Select(pName => pName.Name))
                                                         .Distinct()
