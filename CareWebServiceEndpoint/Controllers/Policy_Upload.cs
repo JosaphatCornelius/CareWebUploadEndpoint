@@ -10,18 +10,18 @@ namespace CareWebServiceEndpoint.Controllers
 {
     [Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
     [ApiController]
-    public class Upload_Excel : Controller
+    public class Policy_Upload : Controller
     {
         private readonly SEAWEBContext _seaWebContext;
         private readonly ARTALEARNContext _artaLearnContext;
 
-        public Upload_Excel(SEAWEBContext seaWebContext, ARTALEARNContext artaLearnContext)
+        public Policy_Upload(SEAWEBContext seaWebContext, ARTALEARNContext artaLearnContext)
         {
             _seaWebContext = seaWebContext;
             _artaLearnContext = artaLearnContext;
         }
 
-        [HttpPost("/Upload-UP00000001")]
+        [HttpPost("/UP00000001-Upload")]
         public async Task<string> UploadUP01Data([FromBody] List<UP00000001Model> UP01Data)
         {
             try
@@ -50,7 +50,7 @@ namespace CareWebServiceEndpoint.Controllers
             }
         }
 
-        [HttpPost("/Upload-BE00000005")]
+        [HttpPost("/BE00000005-Upload")]
         public async Task<string> UploadBE05Data([FromBody] List<BE00000005Model> BE05Data)
         {
             try
@@ -79,7 +79,7 @@ namespace CareWebServiceEndpoint.Controllers
             }
         }
 
-        [HttpGet("/Upload-Check")]
+        [HttpGet("/Check-Upload")]
         public async Task<List<UPDataModel>> UploadCheck(string? batchNo)
         {
             try

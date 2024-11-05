@@ -370,6 +370,7 @@ namespace CareWebServiceEndpoint.Models
         public string? CLAUSE13 { get; set; }
         public string? CLAUSE14 { get; set; }
         public string? CLAUSE15 { get; set; }
+        public string? CLAUSE16 { get; set; }
         public string? LEADERID { get; set; }
         public string? LEADERSHARE { get; set; }
         public string? LEADERFEE { get; set; }
