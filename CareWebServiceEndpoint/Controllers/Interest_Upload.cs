@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Xml.Linq;
 using System.Xml;
+using Microsoft.EntityFrameworkCore;
 
 namespace CareWebServiceEndpoint.Controllers
 {
@@ -20,7 +21,7 @@ namespace CareWebServiceEndpoint.Controllers
         }
 
         [HttpPost("/Interest-Upload")]
-        public async Task<string> UploadUP01Data([FromQuery] string ano, [FromBody] List<InterestModel> InterestData)
+        public async Task<string> InterestUpload([FromQuery] string ano, [FromBody] List<InterestModel> InterestData)
         {
             try
             {
@@ -46,6 +47,12 @@ namespace CareWebServiceEndpoint.Controllers
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        [HttpGet("/Check-Interest-Upload")]
+        public async Task<List<ICOVERModel>> UploadCheck(int ano)
+        {
+            return await _seaWebContext.CatalogICOVER.AsNoTracking().Where(x => x.ANO == ano).ToListAsync();
         }
 
         protected XElement ConvertJsonToXML<T>(string ano, List<T> UploadedData)
@@ -133,7 +140,7 @@ namespace CareWebServiceEndpoint.Controllers
             );
 
             // Output the XML
-            Console.WriteLine(envelope);
+            //Console.WriteLine(envelope);
 
             return envelope;
 
