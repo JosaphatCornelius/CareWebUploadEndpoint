@@ -1,29 +1,26 @@
 ﻿using CareWebServiceEndpoint.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Data;
-using System.Xml;
 using System.Xml.Linq;
+using System.Xml;
 
 namespace CareWebServiceEndpoint.Controllers
 {
     [Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
     [ApiController]
-    public class Upload_Excel : Controller
+    public class Profile_Upload : Controller
     {
         private readonly SEAWEBContext _seaWebContext;
         private readonly ARTALEARNContext _artaLearnContext;
 
-        public Upload_Excel(SEAWEBContext seaWebContext, ARTALEARNContext artaLearnContext)
+        public Profile_Upload(SEAWEBContext seaWebContext, ARTALEARNContext artaLearnContext)
         {
             _seaWebContext = seaWebContext;
             _artaLearnContext = artaLearnContext;
         }
 
-        [HttpPost("/Upload-UP00000001")]
-        public async Task<string> UploadData([FromQuery] string uploadOpt, [FromBody] List<UP00000001Model> UP01Data)
+        [HttpPost("/Profile-Upload")]
+        public async Task <string> ProfileUpload([FromBody] List<ProfileModel> ProfileData)
         {
             try
             {
@@ -36,9 +33,100 @@ namespace CareWebServiceEndpoint.Controllers
                     };
 
                 var client = new HttpClient(handler);
+                client.Timeout = TimeSpan.FromSeconds(150);
 
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
-                request.Content = new StringContent(ConvertJsonToXML(uploadOpt.Trim().ToUpper(), UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+                var request = new HttpRequestMessage(HttpMethod.Post, "http://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Verify_Upload_Profile");
+                request.Content = new StringContent(ConvertJsonToXML(false, ProfileData).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+
+                var response = await client.SendAsync(request);
+
+                if (ValidateXMLResponse(response.Content.ReadAsStringAsync().Result))
+                {
+                    var uploadHandler = new HttpClientHandler();
+                    uploadHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                    uploadHandler.ServerCertificateCustomValidationCallback =
+                        (httpRequestMessage, cert, cetChain, policyErrors) =>
+                        {
+                            return true;
+                        };
+
+                    var uploadClient = new HttpClient(uploadHandler);
+                    uploadClient.Timeout = TimeSpan.FromSeconds(150);
+
+                    var uploadRequest = new HttpRequestMessage(HttpMethod.Post, "http://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Process_Upload_Profile");
+                    uploadRequest.Content = new StringContent(ConvertJsonToXML(false, ProfileData).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+
+                    var uploadResponse = await uploadClient.SendAsync(uploadRequest);
+
+                    return await uploadResponse.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    return "Data Anda tidak valid";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost("/Profile-Verification")]
+        public async Task<string> ProfileVerification([FromBody] List<ProfileModel> ProfileData)
+        {
+            try
+            {
+                var handler = new HttpClientHandler();
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                handler.ServerCertificateCustomValidationCallback =
+                    (httpRequestMessage, cert, cetChain, policyErrors) =>
+                    {
+                        return true;
+                    };
+
+                var client = new HttpClient(handler);
+                client.Timeout = TimeSpan.FromSeconds(150);
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "http://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Verify_Upload_Profile");
+                request.Content = new StringContent(ConvertJsonToXML(false, ProfileData).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+
+                var response = await client.SendAsync(request);
+
+                if (ValidateXMLResponse(response.Content.ReadAsStringAsync().Result))
+                {
+                    return "Data Anda valid";
+                }
+                else
+                {
+                    return "Data Anda tidak valid";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost("/Profile-Proccessing")]
+        public async Task<string> ProfileProcessing([FromBody] List<ProfileModel> ProfileData)
+        {
+            try
+            {
+                var handler = new HttpClientHandler();
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                handler.ServerCertificateCustomValidationCallback =
+                    (httpRequestMessage, cert, cetChain, policyErrors) =>
+                    {
+                        return true;
+                    };
+
+                var client = new HttpClient(handler);
+                client.Timeout = TimeSpan.FromSeconds(150);
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "http://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Process_Upload_Profile");
+                request.Content = new StringContent(ConvertJsonToXML(true, ProfileData).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
 
                 var response = await client.SendAsync(request);
 
@@ -50,41 +138,32 @@ namespace CareWebServiceEndpoint.Controllers
             }
         }
 
-        [HttpGet("/Upload-Check")]
-        public async Task<List<UPDataModel>> UploadCheck(string? batchNo)
+        protected bool ValidateXMLResponse(string XML)
         {
-            try
+            XmlDocument xDoc = new();
+            xDoc.LoadXml(XML);
+
+            string jsonStr = JsonConvert.SerializeXmlNode(xDoc);
+
+            // if true then the data is valid, else it's not
+            if (jsonStr.Contains("#text"))
             {
-                List<UPDataModel> upData = new();
-
-                var uploadedData = await _seaWebContext.CatalogSysBatchOriginalUP.AsNoTracking().Where(x => x.BatchNo == batchNo.Trim()).ToListAsync();
-
-                foreach (var item in uploadedData)
-                {
-                    upData.Add(new UPDataModel
-                    {
-                        BatchNo = item.BatchNo,
-                        ErrMsg = item.ErrMsg,
-                        Status = item.Status,
-                        RefNO = item.RefNO
-                    });
-                }
-
-                await _artaLearnContext.CatalogUPData.AddRangeAsync(upData);
-
-                await _artaLearnContext.SaveChangesAsync();
-
-                return await _artaLearnContext.CatalogUPData.AsNoTracking().Where(x => x.BatchNo == batchNo.Trim()).ToListAsync();
+                return false;
             }
-            catch (Exception ex)
+            else if (jsonStr.Contains("false"))
             {
-                throw new Exception(ex.Message);
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
 
-        protected XElement ConvertJsonToXML(string uploadOpt, List<UP00000001Model> UP01Data)
+        // if verifOrProcess == false, then it's verif. else it's process
+        protected XElement ConvertJsonToXML<T>(bool verifOrProcess, List<T> UploadedData)
         {
-            string json = JsonConvert.SerializeObject(UP01Data);
+            string json = JsonConvert.SerializeObject(UploadedData);
 
             //Console.WriteLine(json);
 
@@ -100,73 +179,100 @@ namespace CareWebServiceEndpoint.Controllers
 
             // Create the SOAP Header (empty in this case)
             XElement header = new(soap + "Header");
+            XElement body = null;
 
-            // Create the SOAP Body with the Upload_Excel operation
-            XElement body = new XElement(soap + "Body",
-                new XElement(tem + "Upload_Excel",
-                    new XElement(tem + "dbuser", "care"),
-                    new XElement(tem + "dbpassword", ""),
-                    new XElement(tem + "inparam",
-                        new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:string"),
-                            uploadOpt
-                        ),
-                        new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:string"),
-                            uploadOpt.Substring(0, 2)
-                        ),
-                        new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:string")
-                        ),
-                        new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:boolean"),
-                            "false"
-                        ),
-                        new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:string")
-                        ),
-                        new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:boolean"),
-                            "false"
-                        )
-                    ),
-                    new XElement(tem + "dataset",
-                        new XElement(xs + "schema",
-                            new XElement(xs + "element",
-                                new XAttribute("name", "Dataset"),
-                                new XElement(xs + "complexType",
-                                    new XElement(xs + "sequence",
-                                        new XElement(xs + "element",
-                                            new XAttribute("name", "Table"),
-                                            new XAttribute("maxOccurs", "unbounded"),
-                                            new XElement(xs + "complexType",
-                                                new XElement(xs + "sequence",
-                                                    UP01Data.SelectMany(UP01Obj => UP01Obj.GetType().GetProperties()
-                                                        .Where(type => type.PropertyType == typeof(string))
-                                                        .Select(pName => pName.Name))
-                                                        .Distinct()
-                                                        .Select(uniqueName => new XElement(xs + "element",
-                                                            new XAttribute("name", uniqueName),
-                                                            new XAttribute("type", "xs:string"),
-                                                            new XAttribute("minOccurs", "0")
-                                                        ))
+            if (verifOrProcess)
+            {
+                // Create the SOAP Body with the SaveListInterest operation
+                body = new XElement(soap + "Body",
+                    new XElement(tem + "Process_Upload_Profile",
+                        new XElement(tem + "dbuser", "care"),
+                        new XElement(tem + "dbpassword", ""),
+                        new XElement(tem + "InParam"),
+                        new XElement(tem + "OutParam"),
+                        new XElement(tem + "Dataset",
+                            new XElement(xs + "schema",
+                                new XElement(xs + "element",
+                                    new XAttribute("name", "Dataset"),
+                                    new XElement(xs + "complexType",
+                                        new XElement(xs + "sequence",
+                                            new XElement(xs + "element",
+                                                new XAttribute("name", "Table"),
+                                                new XAttribute("maxOccurs", "unbounded"),
+                                                new XElement(xs + "complexType",
+                                                    new XElement(xs + "sequence",
+                                                        UploadedData.SelectMany(data => data.GetType().GetProperties()
+                                                            .Where(type => type.PropertyType == typeof(string))
+                                                            .Select(pName => pName.Name))
+                                                            .Distinct()
+                                                            .Select(uniqueName => new XElement(xs + "element",
+                                                                new XAttribute("name", uniqueName),
+                                                                new XAttribute("type", "xs:string"),
+                                                                new XAttribute("minOccurs", "0")
+                                                            ))
+                                                    )
                                                 )
                                             )
                                         )
                                     )
                                 )
+                            ),
+                            new XElement(diffgr + "diffgram",
+                                new XAttribute(XNamespace.Xmlns + "diffgr", "urn:schemas-microsoft-com:xml-diffgram-v1"),
+                                new XAttribute(XNamespace.Xmlns + "msdata", "urn:schemas-microsoft-com:xml-msdata"),
+                                new XElement(XElement.Parse(node.OuterXml))
                             )
                         ),
-                        new XElement(diffgr + "diffgram",
-                            new XAttribute(XNamespace.Xmlns + "diffgr", "urn:schemas-microsoft-com:xml-diffgram-v1"),
-                            new XAttribute(XNamespace.Xmlns + "msdata", "urn:schemas-microsoft-com:xml-msdata"),
-                            new XElement(XElement.Parse(node.OuterXml))
-                        )
-                    ),
-                    new XElement(tem + "outparam"),
-                    new XElement(tem + "ErrMsg")
-                )
-            );
+                        new XElement(tem + "ErrMsg")
+                    )
+                );
+            }
+            else
+            {
+                // Create the SOAP Body with the SaveListInterest operation
+                body = new XElement(soap + "Body",
+                    new XElement(tem + "Verify_Upload_Profile",
+                        new XElement(tem + "dbuser", "care"),
+                        new XElement(tem + "dbpassword", ""),
+                        new XElement(tem + "InParam"),
+                        new XElement(tem + "OutParam"),
+                        new XElement(tem + "Dataset",
+                            new XElement(xs + "schema",
+                                new XElement(xs + "element",
+                                    new XAttribute("name", "Dataset"),
+                                    new XElement(xs + "complexType",
+                                        new XElement(xs + "sequence",
+                                            new XElement(xs + "element",
+                                                new XAttribute("name", "Table"),
+                                                new XAttribute("maxOccurs", "unbounded"),
+                                                new XElement(xs + "complexType",
+                                                    new XElement(xs + "sequence",
+                                                        UploadedData.SelectMany(data => data.GetType().GetProperties()
+                                                            .Where(type => type.PropertyType == typeof(string))
+                                                            .Select(pName => pName.Name))
+                                                            .Distinct()
+                                                            .Select(uniqueName => new XElement(xs + "element",
+                                                                new XAttribute("name", uniqueName),
+                                                                new XAttribute("type", "xs:string"),
+                                                                new XAttribute("minOccurs", "0")
+                                                            ))
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            ),
+                            new XElement(diffgr + "diffgram",
+                                new XAttribute(XNamespace.Xmlns + "diffgr", "urn:schemas-microsoft-com:xml-diffgram-v1"),
+                                new XAttribute(XNamespace.Xmlns + "msdata", "urn:schemas-microsoft-com:xml-msdata"),
+                                new XElement(XElement.Parse(node.OuterXml))
+                            )
+                        ),
+                        new XElement(tem + "ErrMsg")
+                    )
+                );
+            }
 
             // Create the SOAP Envelope
             XElement envelope = new XElement(soap + "Envelope",
