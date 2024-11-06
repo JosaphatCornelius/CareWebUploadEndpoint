@@ -19,6 +19,59 @@ namespace CareWebServiceEndpoint.Controllers
             _artaLearnContext = artaLearnContext;
         }
 
+        [HttpPost("/Profile-Upload")]
+        public async Task <string> ProfileUpload([FromBody] List<ProfileModel> ProfileData)
+        {
+            try
+            {
+                var handler = new HttpClientHandler();
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                handler.ServerCertificateCustomValidationCallback =
+                    (httpRequestMessage, cert, cetChain, policyErrors) =>
+                    {
+                        return true;
+                    };
+
+                var client = new HttpClient(handler);
+                client.Timeout = TimeSpan.FromSeconds(150);
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "http://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Verify_Upload_Profile");
+                request.Content = new StringContent(ConvertJsonToXML(false, ProfileData).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+
+                var response = await client.SendAsync(request);
+
+                if (ValidateXMLResponse(response.Content.ReadAsStringAsync().Result))
+                {
+                    var uploadHandler = new HttpClientHandler();
+                    uploadHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                    uploadHandler.ServerCertificateCustomValidationCallback =
+                        (httpRequestMessage, cert, cetChain, policyErrors) =>
+                        {
+                            return true;
+                        };
+
+                    var uploadClient = new HttpClient(uploadHandler);
+                    uploadClient.Timeout = TimeSpan.FromSeconds(150);
+
+                    var uploadRequest = new HttpRequestMessage(HttpMethod.Post, "http://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Process_Upload_Profile");
+                    uploadRequest.Content = new StringContent(ConvertJsonToXML(false, ProfileData).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+
+                    var uploadResponse = await uploadClient.SendAsync(uploadRequest);
+
+                    return await uploadResponse.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    return "Data Anda tidak valid";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         [HttpPost("/Profile-Verification")]
         public async Task<string> ProfileVerification([FromBody] List<ProfileModel> ProfileData)
         {
@@ -40,7 +93,15 @@ namespace CareWebServiceEndpoint.Controllers
 
                 var response = await client.SendAsync(request);
 
-                return await response.Content.ReadAsStringAsync();
+                if (ValidateXMLResponse(response.Content.ReadAsStringAsync().Result))
+                {
+                    return "Data Anda valid";
+                }
+                else
+                {
+                    return "Data Anda tidak valid";
+                }
+
             }
             catch (Exception ex)
             {
@@ -74,6 +135,28 @@ namespace CareWebServiceEndpoint.Controllers
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        protected bool ValidateXMLResponse(string XML)
+        {
+            XmlDocument xDoc = new();
+            xDoc.LoadXml(XML);
+
+            string jsonStr = JsonConvert.SerializeXmlNode(xDoc);
+
+            // if true then the data is valid, else it's not
+            if (jsonStr.Contains("#text"))
+            {
+                return false;
+            }
+            else if (jsonStr.Contains("false"))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
 
