@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CareWebServiceEndpoint.Models.Database.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace CareWebServiceEndpoint.Models
+namespace CareWebServiceEndpoint.Models.Database.Context
 {
     public class ARTALEARNContext : DbContext
     {

@@ -1,4 +1,6 @@
-﻿using CareWebServiceEndpoint.Models;
+﻿using CareWebServiceEndpoint.Models.Database.Context;
+using CareWebServiceEndpoint.Models.Database.Models;
+using CareWebServiceEndpoint.Models.Upload;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;

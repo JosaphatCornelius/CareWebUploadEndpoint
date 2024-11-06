@@ -1,5 +1,4 @@
-
-using CareWebServiceEndpoint.Models;
+using CareWebServiceEndpoint.Models.Database.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareWebServiceEndpoint

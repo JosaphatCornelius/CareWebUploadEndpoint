@@ -1,4 +1,4 @@
-﻿namespace CareWebServiceEndpoint.Models
+﻿namespace CareWebServiceEndpoint.Models.Upload
 {
     public class BE00000005Model
     {

@@ -1,8 +1,11 @@
-﻿using CareWebServiceEndpoint.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Xml.Linq;
 using System.Xml;
+using CareWebServiceEndpoint.Models.Database.Context;
+using CareWebServiceEndpoint.Models.Upload;
+using Microsoft.EntityFrameworkCore;
+using CareWebServiceEndpoint.Models.Database.Models;
 
 namespace CareWebServiceEndpoint.Controllers
 {
@@ -20,7 +23,7 @@ namespace CareWebServiceEndpoint.Controllers
         }
 
         [HttpPost("/Profile-Upload")]
-        public async Task <string> ProfileUpload([FromBody] List<ProfileModel> ProfileData)
+        public async Task<string> ProfileUpload([FromBody] List<UploadProfileModel> ProfileData)
         {
             try
             {
@@ -73,7 +76,7 @@ namespace CareWebServiceEndpoint.Controllers
         }
 
         [HttpPost("/Profile-Verification")]
-        public async Task<string> ProfileVerification([FromBody] List<ProfileModel> ProfileData)
+        public async Task<string> ProfileVerification([FromBody] List<UploadProfileModel> ProfileData)
         {
             try
             {
@@ -110,7 +113,7 @@ namespace CareWebServiceEndpoint.Controllers
         }
 
         [HttpPost("/Profile-Proccessing")]
-        public async Task<string> ProfileProcessing([FromBody] List<ProfileModel> ProfileData)
+        public async Task<string> ProfileProcessing([FromBody] List<UploadProfileModel> ProfileData)
         {
             try
             {
@@ -136,6 +139,12 @@ namespace CareWebServiceEndpoint.Controllers
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        [HttpGet("/Profile-Check")]
+        public async Task<List<ProfileModel>> ProfileCheck([FromQuery] string refID)
+        {
+            return await _seaWebContext.CatalogProfile.AsNoTracking().Where(x => x.RefID == refID).ToListAsync();
         }
 
         protected bool ValidateXMLResponse(string XML)

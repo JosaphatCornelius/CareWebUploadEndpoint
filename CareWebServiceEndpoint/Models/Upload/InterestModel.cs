@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 
-namespace CareWebServiceEndpoint.Models
+namespace CareWebServiceEndpoint.Models.Upload
 {
     public class InterestModel
     {

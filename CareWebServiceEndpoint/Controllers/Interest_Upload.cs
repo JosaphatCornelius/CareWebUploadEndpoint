@@ -1,9 +1,11 @@
-﻿using CareWebServiceEndpoint.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Xml.Linq;
 using System.Xml;
 using Microsoft.EntityFrameworkCore;
+using CareWebServiceEndpoint.Models.Database.Context;
+using CareWebServiceEndpoint.Models.Upload;
+using CareWebServiceEndpoint.Models.Database.Models;
 
 namespace CareWebServiceEndpoint.Controllers
 {

@@ -1,6 +1,6 @@
-﻿namespace CareWebServiceEndpoint.Models
+﻿namespace CareWebServiceEndpoint.Models.Upload
 {
-    public class ProfileModel
+    public class UploadProfileModel
     {
         public string? Status { get; set; }
         public string? Branch { get; set; }
