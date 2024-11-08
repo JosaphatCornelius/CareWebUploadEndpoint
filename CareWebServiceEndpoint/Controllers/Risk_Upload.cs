@@ -4,27 +4,26 @@ using CareWebServiceEndpoint.Models.Upload;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Data;
-using System.Xml;
 using System.Xml.Linq;
+using System.Xml;
 
 namespace CareWebServiceEndpoint.Controllers
 {
     [Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
     [ApiController]
-    public class Policy_Upload : Controller
+    public class Risk_Upload : Controller
     {
         private readonly SEAWEBContext _seaWebContext;
         private readonly ARTALEARNContext _artaLearnContext;
 
-        public Policy_Upload(SEAWEBContext seaWebContext, ARTALEARNContext artaLearnContext)
+        public Risk_Upload(SEAWEBContext seaWebContext, ARTALEARNContext artaLearnContext)
         {
             _seaWebContext = seaWebContext;
             _artaLearnContext = artaLearnContext;
         }
 
-        [HttpPost("/UP00000001-Upload")]
-        public async Task<string> UploadUP01Data([FromBody] List<UP00000001Model> UP01Data)
+        [HttpPost("/Risk-Upload")]
+        public async Task<string> UploadRiskData([FromQuery] string ANO, [FromBody] List<RiskModel> RiskData)
         {
             try
             {
@@ -39,8 +38,8 @@ namespace CareWebServiceEndpoint.Controllers
                 var client = new HttpClient(handler);
                 client.Timeout = TimeSpan.FromSeconds(150);
 
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
-                request.Content = new StringContent(ConvertJsonToXML("UP00000001", UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSUnderwriting.asmx?op=SaveListCoverage");
+                request.Content = new StringContent(ConvertJsonToXML(ANO, RiskData).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
 
                 var response = await client.SendAsync(request);
 
@@ -52,97 +51,7 @@ namespace CareWebServiceEndpoint.Controllers
             }
         }
 
-        [HttpPost("/UP00000007-Upload")]
-        public async Task<string> UploadUP07Data([FromBody] List<UP00000007Model> UP07Data)
-        {
-            try
-            {
-                var handler = new HttpClientHandler();
-                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                handler.ServerCertificateCustomValidationCallback =
-                    (httpRequestMessage, cert, cetChain, policyErrors) =>
-                    {
-                        return true;
-                    };
-
-                var client = new HttpClient(handler);
-                client.Timeout = TimeSpan.FromSeconds(150);
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
-                request.Content = new StringContent(ConvertJsonToXML("UP00000007", UP07Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
-
-                var response = await client.SendAsync(request);
-
-                return await response.Content.ReadAsStringAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        [HttpPost("/BE00000005-Upload")]
-        public async Task<string> UploadBE05Data([FromBody] List<BE00000005Model> BE05Data)
-        {
-            try
-            {
-                var handler = new HttpClientHandler();
-                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                handler.ServerCertificateCustomValidationCallback =
-                    (httpRequestMessage, cert, cetChain, policyErrors) =>
-                    {
-                        return true;
-                    };
-
-                var client = new HttpClient(handler);
-                client.Timeout = TimeSpan.FromSeconds(150);
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
-                request.Content = new StringContent(ConvertJsonToXML("BE00000005", BE05Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
-
-                var response = await client.SendAsync(request);
-
-                return await response.Content.ReadAsStringAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        [HttpGet("/Check-Policy-Upload")]
-        public async Task<List<UPDataModel>> UploadCheck(string batchNo)
-        {
-            try
-            {
-                List<UPDataModel> upData = new();
-
-                var uploadedData = await _seaWebContext.CatalogSysBatchOriginalUP.AsNoTracking().Where(x => x.BatchNo == batchNo.Trim()).ToListAsync();
-
-                foreach (var item in uploadedData)
-                {
-                    upData.Add(new UPDataModel
-                    {
-                        BatchNo = item.BatchNo,
-                        ErrMsg = item.ErrMsg,
-                        Status = item.Status,
-                        RefNO = item.RefNO
-                    });
-                }
-
-                await _artaLearnContext.CatalogUPData.AddRangeAsync(upData);
-
-                await _artaLearnContext.SaveChangesAsync();
-
-                return await _artaLearnContext.CatalogUPData.AsNoTracking().Where(x => x.BatchNo == batchNo.Trim()).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        protected XElement ConvertJsonToXML<T>(string uploadOption, List<T> UploadedData)
+        protected XElement ConvertJsonToXML<T>(string ANO, List<T> UploadedData)
         {
             string json = JsonConvert.SerializeObject(UploadedData);
 
@@ -163,34 +72,34 @@ namespace CareWebServiceEndpoint.Controllers
 
             // Create the SOAP Body with the Upload_Excel operation
             XElement body = new XElement(soap + "Body",
-                new XElement(tem + "Upload_Excel",
-                    new XElement(tem + "dbuser", "care"),
-                    new XElement(tem + "dbpassword", ""),
-                    new XElement(tem + "inparam",
+                new XElement(tem + "SaveListCoverage",
+                    new XElement(tem + "dbUser", "care"),
+                    new XElement(tem + "dbPassword", ""),
+                    new XElement(tem + "InParam",
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string"),
-                            uploadOption
-                        ),
-                        new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:string"),
-                            uploadOption.Substring(0, 2)
+                            ANO
                         ),
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string")
                         ),
                         new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:boolean"),
-                            "false"
+                            new XAttribute(xsi + "type", "xs:string")
                         ),
                         new XElement(tem + "anyType",
                             new XAttribute(xsi + "type", "xs:string")
                         ),
                         new XElement(tem + "anyType",
-                            new XAttribute(xsi + "type", "xs:boolean"),
-                            "false"
+                            new XAttribute(xsi + "type", "xs:string")
+                        ),
+                        new XElement(tem + "anyType",
+                            new XAttribute(xsi + "type", "xs:string")
                         )
                     ),
-                    new XElement(tem + "dataset",
+                    new XElement(tem + "OutParam"),
+                    new XElement(tem + "findex"),
+                    new XElement(tem + "fbuffer"),
+                    new XElement(tem + "Dataset",
                         new XElement(xs + "schema",
                             new XElement(xs + "element",
                                 new XAttribute("name", "Dataset"),
@@ -223,7 +132,6 @@ namespace CareWebServiceEndpoint.Controllers
                             new XElement(XElement.Parse(node.OuterXml))
                         )
                     ),
-                    new XElement(tem + "outparam"),
                     new XElement(tem + "ErrMsg")
                 )
             );

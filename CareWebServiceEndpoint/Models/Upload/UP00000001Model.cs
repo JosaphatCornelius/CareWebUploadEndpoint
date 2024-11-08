@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace CareWebServiceEndpoint.Models.Upload
+﻿namespace CareWebServiceEndpoint.Models.Upload
 {
     public class UP00000001Model
     {
