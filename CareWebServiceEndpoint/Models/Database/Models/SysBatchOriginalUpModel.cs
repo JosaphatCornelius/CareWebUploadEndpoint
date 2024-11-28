@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CareWebServiceEndpoint.Models
+namespace CareWebServiceEndpoint.Models.Database.Models
 {
     [Table("SysBatchOriginalUp")]
     public class SysBatchOriginalUpModel

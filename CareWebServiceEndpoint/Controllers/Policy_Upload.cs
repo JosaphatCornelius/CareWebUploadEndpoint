@@ -1,4 +1,6 @@
-﻿using CareWebServiceEndpoint.Models;
+﻿using CareWebServiceEndpoint.Models.Database.Context;
+using CareWebServiceEndpoint.Models.Database.Models;
+using CareWebServiceEndpoint.Models.Upload;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -39,6 +41,35 @@ namespace CareWebServiceEndpoint.Controllers
 
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
                 request.Content = new StringContent(ConvertJsonToXML("UP00000001", UP01Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
+
+                var response = await client.SendAsync(request);
+
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost("/UP00000007-Upload")]
+        public async Task<string> UploadUP07Data([FromBody] List<UP00000007Model> UP07Data)
+        {
+            try
+            {
+                var handler = new HttpClientHandler();
+                handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                handler.ServerCertificateCustomValidationCallback =
+                    (httpRequestMessage, cert, cetChain, policyErrors) =>
+                    {
+                        return true;
+                    };
+
+                var client = new HttpClient(handler);
+                client.Timeout = TimeSpan.FromSeconds(150);
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://172.20.12.55/CareWebServiceV5/WSEUploader.asmx?op=Upload_Excel");
+                request.Content = new StringContent(ConvertJsonToXML("UP00000007", UP07Data).ToString(), System.Text.Encoding.UTF8, "application/soap+xml");
 
                 var response = await client.SendAsync(request);
 
